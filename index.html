@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Taller</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/dark.css">
+    <style> body { max-width: 1200px; margin: auto; } .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; } </style>
+</head>
+<body>
+    <h1>🛠️ Sistema de Gestión de Taller</h1>
+    <p>Todos los usuarios ven esta misma información en tiempo real.</p>
+
+    <fieldset>
+        <legend>Agregar Nueva Unidad</legend>
+        <label for="nombre">Nombre de la unidad:</label>
+        <input type="text" id="nombre" placeholder="Ej. Camión 05">
+        <label for="orden">Orden de Mantenimiento:</label>
+        <input type="text" id="orden" placeholder="Ej. Cambio de llantas">
+        <button id="btnAgregar">Agregar a Mantenimiento</button>
+    </fieldset>
+
+    <h2>📋 Estado Actual de las Unidades</h2>
+    <div class="grid">
+        <section>
+            <h3>En Mantenimiento</h3>
+            <div id="listaMantenimiento"></div>
+        </section>
+        <section>
+            <h3>Listas para Asignación</h3>
+            <div id="listaParaAsignar"></div>
+        </section>
+        <section>
+            <h3>En Ruta</h3>
+            <div id="listaEnRuta"></div>
+        </section>
+    </div>
+    
+    <script src="taller.js"></script>
+</body>
+</html>
