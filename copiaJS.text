@@ -1,191 +1,103 @@
-// Variable para asignar un ID único a cada unidad.
-let nextUnitId = 1;
 
-// Listas que actúan como nuestra base de datos.
-let unidadesEnMantenimiento = [];
-let unidadesListasParaAsignacion = [];
-let unidadesEnRuta = [];
 
-// Referencias a los elementos del HTML donde mostraremos las listas.
+
+
+
+
+// taller.js
+
+// IMPORTANTE: Aquí debes poner la IP de la computadora servidor.
+// Si el servidor corre en la misma máquina, puedes usar '127.0.0.1'.
+const IP_SERVIDOR = "192.168.100.154"; // <-- ¡CAMBIA ESTO POR LA IP DEL SERVIDOR!
+const URL_BASE = `http://${IP_SERVIDOR}:5000`;
+
+// --- Referencias a Elementos del HTML ---
 const listaMantenimientoEl = document.getElementById('listaMantenimiento');
 const listaParaAsignarEl = document.getElementById('listaParaAsignar');
 const listaEnRutaEl = document.getElementById('listaEnRuta');
-const listaConsolidadaEl = document.getElementById('listaConsolidada'); 
-
-// Referencias a los botones de acción.
 const btnAgregar = document.getElementById('btnAgregar');
-const btnCompletar = document.getElementById('btnCompletar');
-const btnAsignar = document.getElementById('btnAsignar');
-const btnEliminar = document.getElementById('btnEliminar'); // <-- NUEVA REFERENCIA
 
-/**
- * Función para actualizar la visualización de las listas por estado en el HTML.
- */
-function mostrarListasPorEstado() {
-    // ... (sin cambios en esta función)
-    listaMantenimientoEl.textContent = unidadesEnMantenimiento.length > 0 ? '' : 'Ninguna.';
-    unidadesEnMantenimiento.forEach(u => {
-        listaMantenimientoEl.textContent += `ID: ${u.id}, Nombre: ${u.nombre}\nOrden: ${u.orden_mantenimiento}\n\n`;
-    });
-    listaParaAsignarEl.textContent = unidadesListasParaAsignacion.length > 0 ? '' : 'Ninguna.';
-    unidadesListasParaAsignacion.forEach(u => {
-        listaParaAsignarEl.textContent += `ID: ${u.id}, Nombre: ${u.nombre}\n\n`;
-    });
-    listaEnRutaEl.textContent = unidadesEnRuta.length > 0 ? '' : 'Ninguna.';
-    unidadesEnRuta.forEach(u => {
-        listaEnRutaEl.textContent += `ID: ${u.id}, Nombre: ${u.nombre}\nRuta: ${u.ruta_asignada}\n\n`;
-    });
-}
+// --- Funciones de Interacción con la API ---
 
-/**
- * Muestra una lista única con todas las unidades.
- */
-function mostrarListaConsolidada() {
-    // ... (sin cambios en esta función)
-    const todasLasUnidades = [...unidadesEnMantenimiento, ...unidadesListasParaAsignacion, ...unidadesEnRuta];
-    todasLasUnidades.sort((a, b) => a.id - b.id);
-    if (todasLasUnidades.length === 0) {
-        listaConsolidadaEl.textContent = 'No hay unidades registradas.';
-        return;
+// Función principal para obtener y mostrar todas las unidades
+async function actualizarVistas() {
+    try {
+        const response = await fetch(`${URL_BASE}/unidades`);
+        const unidades = await response.json();
+
+        // Limpiar listas actuales
+        listaMantenimientoEl.innerHTML = '';
+        listaParaAsignarEl.innerHTML = '';
+        listaEnRutaEl.innerHTML = '';
+
+        // Llenar listas según el estado de cada unidad
+        unidades.forEach(u => {
+            const card = document.createElement('article');
+            if (u.status === 'En Mantenimiento') {
+                card.innerHTML = `<h4>${u.nombre} (ID: ${u.id})</h4><p>Orden: ${u.orden_mantenimiento}</p><button onclick="completarMantenimiento(${u.id})">Mantenimiento Listo</button>`;
+                listaMantenimientoEl.appendChild(card);
+            } else if (u.status === 'Lista para Asignación') {
+                card.innerHTML = `<h4>${u.nombre} (ID: ${u.id})</h4><button onclick="asignarRuta(${u.id})">Asignar a Ruta</button>`;
+                listaParaAsignarEl.appendChild(card);
+            } else if (u.status === 'En Ruta') {
+                card.innerHTML = `<h4>${u.nombre} (ID: ${u.id})</h4><p>Destino: ${u.ruta_asignada}</p>`;
+                listaEnRutaEl.appendChild(card);
+            }
+            // Botón de eliminar para todas las tarjetas
+            card.innerHTML += `<button style="background-color: #990000;" onclick="eliminarUnidad(${u.id})">Eliminar</button>`;
+        });
+
+    } catch (error) {
+        console.error("Error al actualizar vistas:", error);
+        alert("No se pudo conectar con el servidor. ¿Está encendido?");
     }
-    listaConsolidadaEl.textContent = '';
-    todasLasUnidades.forEach(u => {
-        let estadoEmoji = '';
-        if (u.status === 'En Mantenimiento') estadoEmoji = '🛠️';
-        if (u.status === 'Lista para Asignación') estadoEmoji = '✅';
-        if (u.status === 'En Ruta') estadoEmoji = '🚚';
-        listaConsolidadaEl.textContent += `ID: ${u.id}, Nombre: ${u.nombre} -> Estado: ${estadoEmoji} ${u.status}\n`;
+}
+
+// Agregar una nueva unidad
+btnAgregar.onclick = async () => {
+    const nombre = document.getElementById('nombre').value;
+    const orden = document.getElementById('orden').value;
+    if (!nombre || !orden) return alert('Por favor, completa ambos campos.');
+
+    await fetch(`${URL_BASE}/unidades/agregar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre: nombre, orden: orden })
     });
-}
+    document.getElementById('nombre').value = '';
+    document.getElementById('orden').value = '';
+    actualizarVistas();
+};
 
-/**
- * Función maestra para actualizar todas las vistas.
- */
-function actualizarVistas() {
-    mostrarListasPorEstado();
-    mostrarListaConsolidada();
-}
-
-/**
- * Registra una nueva unidad en el sistema.
- */
-function agregarUnidad() {
-    // ... (sin cambios en esta función)
-    const nombreUnidad = prompt("Introduce el nombre de la unidad (ej. Camión 01):");
-    if (!nombreUnidad) return; 
-    const ordenMantenimiento = prompt("Describe la orden de mantenimiento:");
-    if (!ordenMantenimiento) return;
-    const unidad = {
-        id: nextUnitId,
-        nombre: nombreUnidad,
-        status: "En Mantenimiento",
-        orden_mantenimiento: ordenMantenimiento
-    };
-    unidadesEnMantenimiento.push(unidad);
-    nextUnitId++;
-    alert(`✅ ¡Éxito! La unidad '${nombreUnidad}' ha sido registrada.`);
+// Mover a 'Lista para Asignación'
+async function completarMantenimiento(id) {
+    await fetch(`${URL_BASE}/unidades/completar_mantenimiento/${id}`, { method: 'POST' });
     actualizarVistas();
 }
 
-/**
- * Mueve una unidad de 'En Mantenimiento' a 'Lista para Asignación'.
- */
-function completarMantenimiento() {
-    // ... (sin cambios en esta función)
-    if (unidadesEnMantenimiento.length === 0) {
-        alert("⚠️ No hay unidades en mantenimiento.");
-        return;
-    }
-    const idInput = prompt("Introduce el ID de la unidad que terminó su mantenimiento:");
-    const idAMover = parseInt(idInput);
-    if(isNaN(idAMover)) return;
-    const indiceUnidad = unidadesEnMantenimiento.findIndex(u => u.id === idAMover);
-    if (indiceUnidad !== -1) {
-        const unidadMovida = unidadesEnMantenimiento.splice(indiceUnidad, 1)[0];
-        unidadMovida.status = 'Lista para Asignación';
-        unidadesListasParaAsignacion.push(unidadMovida);
-        alert(`✅ ¡Perfecto! La unidad '${unidadMovida.nombre}' ahora está lista para ser asignada.`);
-        actualizarVistas();
-    } else {
-        alert(`❌ Error: No se encontró una unidad con el ID ${idAMover} en mantenimiento.`);
-    }
+// Mover a 'En Ruta'
+async function asignarRuta(id) {
+    const ruta = prompt("Introduce el destino o ruta para esta unidad:");
+    if (!ruta) return;
+
+    await fetch(`${URL_BASE}/unidades/asignar_ruta/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ruta: ruta })
+    });
+    actualizarVistas();
 }
 
-/**
- * Asigna una ruta a una unidad disponible y la mueve a 'En Ruta'.
- */
-function asignarRuta() {
-    // ... (sin cambios en esta función)
-    if (unidadesListasParaAsignacion.length === 0) {
-        alert("⚠️ No hay unidades listas para asignar.");
-        return;
-    }
-    const idInput = prompt("Introduce el ID de la unidad a la que quieres asignar una ruta:");
-    const idAAsignar = parseInt(idInput);
-    if(isNaN(idAAsignar)) return;
-    const indiceUnidad = unidadesListasParaAsignacion.findIndex(u => u.id === idAAsignar);
-    if (indiceUnidad !== -1) {
-        const ruta = prompt("Introduce el destino o ruta:");
-        if (!ruta) return;
-        const unidadAsignada = unidadesListasParaAsignacion.splice(indiceUnidad, 1)[0];
-        unidadAsignada.status = 'En Ruta';
-        unidadAsignada.ruta_asignada = ruta;
-        unidadesEnRuta.push(unidadAsignada);
-        alert(`✅ ¡Hecho! La unidad '${unidadAsignada.nombre}' fue asignada a la ruta: '${ruta}'.`);
-        actualizarVistas();
-    } else {
-        alert(`❌ Error: No se encontró una unidad con el ID ${idAAsignar} lista para asignación.`);
-    }
+// Eliminar cualquier unidad
+async function eliminarUnidad(id) {
+    if (!confirm(`¿Estás seguro de que quieres eliminar la unidad con ID ${id}?`)) return;
+    
+    await fetch(`${URL_BASE}/unidades/eliminar/${id}`, { method: 'DELETE' });
+    actualizarVistas();
 }
 
-/**
- * NUEVA FUNCIÓN: Elimina una unidad del sistema desde cualquier lista.
- */
-function eliminarUnidad() {
-    const idInput = prompt("Introduce el ID de la unidad que deseas eliminar:");
-    const idAEliminar = parseInt(idInput);
-    if(isNaN(idAEliminar)) return; // Si el usuario cancela o no introduce un número
-
-    let unidadEliminada = false;
-
-    // Buscar en la lista de mantenimiento
-    let indice = unidadesEnMantenimiento.findIndex(u => u.id === idAEliminar);
-    if (indice !== -1) {
-        unidadesEnMantenimiento.splice(indice, 1);
-        unidadEliminada = true;
-    }
-
-    // Buscar en la lista para asignación (si no se encontró antes)
-    if (!unidadEliminada) {
-        indice = unidadesListasParaAsignacion.findIndex(u => u.id === idAEliminar);
-        if (indice !== -1) {
-            unidadesListasParaAsignacion.splice(indice, 1);
-            unidadEliminada = true;
-        }
-    }
-
-    // Buscar en la lista en ruta (si no se encontró antes)
-    if (!unidadEliminada) {
-        indice = unidadesEnRuta.findIndex(u => u.id === idAEliminar);
-        if (indice !== -1) {
-            unidadesEnRuta.splice(indice, 1);
-            unidadEliminada = true;
-        }
-    }
-
-    if (unidadEliminada) {
-        alert(`✅ La unidad con ID ${idAEliminar} ha sido eliminada del sistema.`);
-        actualizarVistas();
-    } else {
-        alert(`❌ Error: No se encontró ninguna unidad con el ID ${idAEliminar}.`);
-    }
-}
-
-// --- Asignación de eventos a los botones ---
-btnAgregar.addEventListener('click', agregarUnidad);
-btnCompletar.addEventListener('click', completarMantenimiento);
-btnAsignar.addEventListener('click', asignarRuta);
-btnEliminar.addEventListener('click', eliminarUnidad); // <-- NUEVO EVENTO
-
-// Mostrar las listas al cargar la página.
+// --- Carga Inicial ---
+// Llama a la función por primera vez cuando la página carga
 document.addEventListener('DOMContentLoaded', actualizarVistas);
+// Y actualiza la vista cada 10 segundos para mantenerla sincronizada
+setInterval(actualizarVistas, 10000);

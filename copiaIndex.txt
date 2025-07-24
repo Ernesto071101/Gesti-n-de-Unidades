@@ -1,63 +1,45 @@
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Unidades</title>
-    <style>
-        body { font-family: sans-serif; background-color: #f4f4f9; color: #333; padding: 20px; }
-        h1, h2, h3 { color: #444; padding-bottom: 5px; }
-        h1 { border-bottom: 2px solid #007BFF; }
-        h2 { border-bottom: 1px solid #ccc; }
-        .container { max-width: 900px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .actions { margin-bottom: 20px; }
-        button { background-color: #007BFF; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-size: 16px; margin: 5px 5px 5px 0;}
-        button:hover { opacity: 0.9; }
-        /* === NUEVO ESTILO PARA EL BOTÓN DE ELIMINAR === */
-        #btnEliminar { background-color: #dc3545; }
-        .list-section { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 20px; }
-        .list-section > div { flex: 1; min-width: 250px; }
-        pre { background-color: #e9ecef; padding: 15px; border-radius: 5px; white-space: pre-wrap; word-wrap: break-word; font-size: 14px; }
-        .all-units-section { margin-top: 30px; }
-    </style>
+    <title>Gestión de Taller</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/dark.css">
+    <style> body { max-width: 1200px; margin: auto; } .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; } </style>
 </head>
 <body>
+    <h1>🛠️ Sistema de Gestión de Taller</h1>
+    <p>Todos los usuarios ven esta misma información en tiempo real.</p>
 
-    <div class="container">
-        <h1>🛠️ Sistema de Gestión de Unidades</h1>
+    <fieldset>
+        <legend>Agregar Nueva Unidad</legend>
+        <label for="nombre">Nombre de la unidad:</label>
+        <input type="text" id="nombre" placeholder="Ej. Camión 05">
+        <label for="orden">Orden de Mantenimiento:</label>
+        <input type="text" id="orden" placeholder="Ej. Cambio de llantas">
+        <button id="btnAgregar">Agregar a Mantenimiento</button>
+    </fieldset>
 
-        <div class="actions">
-            <button id="btnAgregar">1. Agregar Unidad</button>
-            <button id="btnCompletar">2. Marcar como Lista</button>
-            <button id="btnAsignar">3. Asignar Ruta</button>
-            <button id="btnEliminar">4. Eliminar Unidad</button>
-            </div>
-
-        <div>
-            <h2>🗒️ Resumen de Estado</h2>
-            <div class="list-section">
-                <div>
-                    <h3>En Mantenimiento</h3>
-                    <pre id="listaMantenimiento">Ninguna.</pre>
-                </div>
-                <div>
-                    <h3>Listas para Asignación</h3>
-                    <pre id="listaParaAsignar">Ninguna.</pre>
-                </div>
-                <div>
-                    <h3>En Ruta</h3>
-                    <pre id="listaEnRuta">Ninguna.</pre>
-                </div>
-            </div>
-        </div>
-
-        <div class="all-units-section">
-            <h2>🌍 Vista General de Todas las Unidades</h2>
-            <pre id="listaConsolidada">No hay unidades registradas.</pre>
-        </div>
-
+    <h2>📋 Estado Actual de las Unidades</h2>
+    <div class="grid">
+        <section>
+            <h3>En Mantenimiento</h3>
+            <div id="listaMantenimiento"></div>
+        </section>
+        <section>
+            <h3>Listas para Asignación</h3>
+            <div id="listaParaAsignar"></div>
+        </section>
+        <section>
+            <h3>En Ruta</h3>
+            <div id="listaEnRuta"></div>
+        </section>
     </div>
-
+    
     <script src="taller.js"></script>
 </body>
 </html>
